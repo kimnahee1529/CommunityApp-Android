@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.WebView
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.findNavController
 import com.example.communityapp.R
@@ -39,7 +40,13 @@ class StoreFragment : Fragment() {
         binding.talkTap.setOnClickListener{
             it.findNavController().navigate(R.id.action_storeFragment_to_talkFragment)
         }
-        return binding.root
+
+        val view = inflater.inflate(R.layout.fragment_store, container, false)
+        val webView: WebView = view.findViewById(R.id.storeWebView)
+        webView.loadUrl("https://www.inflearn.com/")
+//        return binding.root
+
+        return view
     }
 
 
