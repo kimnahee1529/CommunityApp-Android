@@ -33,7 +33,8 @@
                             android:layout_height="match_parent"
                             android:gravity="center"
                             android:layout_marginLeft="50dp"
-                            android:layout_marginRight="50dp"/>
+                            android:layout_marginRight="50dp"
+                            android:layout_marginTop="5dp"/>
 
                         <ImageView
                             android:id="@+id/boardSettingIcon"
