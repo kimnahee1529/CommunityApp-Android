@@ -12,6 +12,8 @@ import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import com.bumptech.glide.Glide
 import com.example.communityapp.R
+import com.example.communityapp.comment.CommentLVAdapter
+import com.example.communityapp.comment.CommentModel
 import com.example.communityapp.databinding.ActivityBoardInsideBinding
 import com.example.communityapp.utils.FBAuth
 import com.example.communityapp.utils.FBRef
@@ -31,10 +33,16 @@ class BoardInsideActivity : AppCompatActivity() {
 
     private lateinit var key:String
 
+    private val commentDataList = mutableListOf<CommentModel>()
+
+    private lateinit var commentLVAdapter: CommentLVAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_board_inside)
+
+
 
         binding.boardSettingIcon.setOnClickListener {
             showDialog()
@@ -45,8 +53,66 @@ class BoardInsideActivity : AppCompatActivity() {
 
         getBoardData(key)
         getImageData(key)
+
+        //글쓰기 버튼이 눌리면
+        binding.commentBtn.setOnClickListener {
+            insertComment(key)
+
+        }
+
+        commentLVAdapter = CommentLVAdapter(commentDataList)
+        binding.commentLV.adapter = commentLVAdapter
+
+        getCommentData(key)
     }
 
+    //파이어베이스에서 댓글 정보 불러와서 앱에 출력하기
+    fun getCommentData(key: String){
+
+        val postListener = object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+
+                commentDataList.clear()
+//
+////                Log.e("ContentListActivity", dataSnapshot.toString())
+                for (dataModel in dataSnapshot.children){
+
+                    val item = dataModel.getValue(CommentModel::class.java)
+                    commentDataList.add(item!!)
+
+                }
+
+                commentLVAdapter.notifyDataSetChanged()
+
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Getting Post failed, log a message
+                Log.w(TAG, "loadPost:onCancelled", databaseError.toException())
+            }
+
+        }
+        FBRef.commentRef.child(key).addValueEventListener(postListener)
+
+    }
+
+    //파이어베이스에 댓글 데이터 보내기
+    fun insertComment(key: String){
+        // comment
+        //    -BoardKey
+        //         -ComentKey
+        //              -CommentData
+        //              -CommentData
+        //              -CommentData
+
+        FBRef.commentRef
+            .child(key)
+            .push()
+            .setValue(CommentModel(binding.commentArea.text.toString(), FBAuth.getTime()))
+
+        Toast.makeText(this, "댓글 입력 완료", Toast.LENGTH_SHORT).show()
+        binding.commentArea.setText("") //editText니까 .setText로 하기
+    }
     private fun showDialog(){
 
         val mDialogView = LayoutInflater.from(this).inflate(R.layout.custom_dialog, null)
@@ -80,6 +146,7 @@ class BoardInsideActivity : AppCompatActivity() {
         // ImageView in your Activity
         val imageViewFromFB = binding.getImageArea
 
+        // 이 부분 다시 공부하기
         storageReference.downloadUrl.addOnCompleteListener(OnCompleteListener { task ->
             if(task.isSuccessful){
 
@@ -88,7 +155,7 @@ class BoardInsideActivity : AppCompatActivity() {
                     .into(imageViewFromFB)
 
             }else{
-
+                binding.getImageArea.isVisible = false
             }
         })
     }
